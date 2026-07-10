@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.conf import settings
 # Create your models here.
 
 User = get_user_model()
@@ -19,7 +20,24 @@ class Phone(models.Model):
     description = models.CharField(max_length=255,blank=True,null=True)
     stock = models.PositiveBigIntegerField(blank=True,null=True)
     created_at = models.DateTimeField(auto_now_add=True,blank=True,null=True)
-    author = models.ForeignKey(User,on_delete=models.CASCADE,blank=True,null=True)
+    author = models.ForeignKey(User,on_delete=models.CASCADE,related_name="phones",blank=True,null=True)
 
     def __str__(self):
         return  f"{self.brand} {self.model}"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="favorites")
+    phone = models.ForeignKey(Phone,on_delete=models.CASCADE,related_name="favorited_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints  = [
+            models.UniqueConstraint(
+                fields=["user","phone"],
+                name="unique_user_phone_favorite"
+            )
+        ]
+
+        def __str__(self):
+            return f"{self.user}-{self.phone}"

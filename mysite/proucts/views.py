@@ -2,27 +2,24 @@
 from rest_framework.filters import SearchFilter,OrderingFilter
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import SAFE_METHODS,BasePermission
-
+from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from .serializers import *
 from .models import *
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
-class IsAdminOrReadOnly(BasePermission):
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        
-        return request.user and request.user.is_staff
 
 class PhoneViewSet(ModelViewSet):
     queryset = Phone.objects.all()
     serializer_class = PhoneSerializers
     filter_backends = [SearchFilter,DjangoFilterBackend,OrderingFilter]
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
     search_fields = ["brand","model","description"]
     ordering_fields = ["price","created_at"]
     filterset_fields = ['category','stock']
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
@@ -30,3 +27,12 @@ class CategoryViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 
+class FavoriteViewSet(ModelViewSet):
+    serializer_class = FavoriteSerializers
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

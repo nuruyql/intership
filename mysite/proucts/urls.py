@@ -6,6 +6,7 @@ from .views import *
 router = DefaultRouter()
 router.register("phones",PhoneViewSet)
 router.register("category",CategoryViewSet)
+router.register("favorite",FavoriteViewSet,basename="favorite")
 
 
 urlpatterns =  [
