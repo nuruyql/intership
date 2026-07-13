@@ -2,7 +2,7 @@
 from rest_framework.filters import SearchFilter,OrderingFilter
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
-from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
+from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly,IsReviewOwnerOrReadOnly
 from .serializers import *
 from .models import *
 from rest_framework.permissions import IsAuthenticated
@@ -35,4 +35,14 @@ class FavoriteViewSet(ModelViewSet):
         return Favorite.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class ReviewViewSet(ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class=ReviewSerializers
+    permission_classes = [IsReviewOwnerOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["phone","rating"]
+
+    def perform_create(self,serializer):
         serializer.save(user=self.request.user)

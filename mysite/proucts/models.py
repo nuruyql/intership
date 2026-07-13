@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core.validators import MinValueValidator,MaxValueValidator
 # Create your models here.
 
 User = get_user_model()
@@ -41,3 +42,23 @@ class Favorite(models.Model):
 
         def __str__(self):
             return f"{self.user}-{self.phone}"
+        
+class Review(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="reviews")
+    phone = models.ForeignKey(Phone,on_delete=models.CASCADE,related_name="reviews")
+    created_at = models.DateTimeField(auto_now_add=True)
+    rating = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5),
+        ]
+    )
+    comments = models.TextField(max_length=255)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user","phone"],
+                name="unique_user_phone_review"
+            )
+        ]
