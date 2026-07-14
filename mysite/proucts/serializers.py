@@ -7,13 +7,17 @@ class PhoneSerializers(serializers.ModelSerializer):
 
     average_rating = serializers.SerializerMethodField()
 
+    category_name = serializers.CharField(
+        source="category.name",
+        read_only=True
+    )
     class Meta:
         model = Phone
         fields = "__all__"
         read_only_fields = ["author"]
 
-        def get_avg_rating(self,obj):
-            result = obj.review.aggregate(
+    def get_average_rating(self,obj):
+            result = obj.reviews.aggregate(
                 average= Avg("rating")
             )
 

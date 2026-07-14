@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 class PhoneViewSet(ModelViewSet):
-    queryset = Phone.objects.all()
+    queryset = Phone.objects.select_related("category")
     serializer_class = PhoneSerializers
     filter_backends = [SearchFilter,DjangoFilterBackend,OrderingFilter]
     permission_classes = [IsOwnerOrReadOnly]
