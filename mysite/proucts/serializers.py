@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import *
-from django.db.models import Avg
-
 
 class PhoneSerializers(serializers.ModelSerializer):
 
@@ -17,12 +15,7 @@ class PhoneSerializers(serializers.ModelSerializer):
         read_only_fields = ["author"]
 
     def get_average_rating(self,obj):
-            result = obj.reviews.aggregate(
-                average= Avg("rating")
-            )
-
-            average = result["average"]
-
+            average = getattr(obj,"average_rating_value",None)
             if average is None:
                 return 0
             return round(average , 1)

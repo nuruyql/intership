@@ -6,13 +6,17 @@ from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly,IsReviewOwnerOrRea
 from .serializers import *
 from .models import *
 from rest_framework.permissions import IsAuthenticated
-
+from django.db.models import  Avg
 # Create your views here.
 
 class PhoneViewSet(ModelViewSet):
-    queryset = Phone.objects.select_related("category")
+    queryset = Phone.objects.select_related("category","author").annotate(average_rating_value=Avg("reviews__rating")).order_by("id")
     serializer_class = PhoneSerializers
-    filter_backends = [SearchFilter,DjangoFilterBackend,OrderingFilter]
+    filter_backends = [
+                       SearchFilter,
+                       DjangoFilterBackend,
+                       OrderingFilter
+                       ]
     permission_classes = [IsOwnerOrReadOnly]
     search_fields = ["brand","model","description"]
     ordering_fields = ["price","created_at"]
@@ -32,13 +36,13 @@ class FavoriteViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Favorite.objects.filter(user=self.request.user)
+        return Favorite.objects.select_related("phone").filter(user=self.request.user)
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 class ReviewViewSet(ModelViewSet):
-    queryset = Review.objects.all()
+    queryset = Review.objects.select_related("user","phone")
     serializer_class=ReviewSerializers
     permission_classes = [IsReviewOwnerOrReadOnly]
     filter_backends = [DjangoFilterBackend]
